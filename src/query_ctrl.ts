@@ -11,6 +11,7 @@ export class DruidQueryCtrl extends QueryCtrl {
   addFilterMode: boolean;
   addAggregatorMode: boolean;
   addPostAggregatorMode: boolean;
+  addScanColumnsMode: boolean;
   addDimensionsMode: boolean;
   addMetricsMode: boolean;
   listDataSources: any;
@@ -32,7 +33,8 @@ export class DruidQueryCtrl extends QueryCtrl {
     "timeseries": _.noop.bind(this),
     "groupBy": this.validateGroupByQuery.bind(this),
     "topN": this.validateTopNQuery.bind(this),
-    "select": this.validateSelectQuery.bind(this)
+    "select": this.validateSelectQuery.bind(this),
+    "scan": this.validateScanQuery.bind(this)
   };
   filterValidators = {
     "selector": this.validateSelectorFilter.bind(this),
@@ -62,6 +64,7 @@ export class DruidQueryCtrl extends QueryCtrl {
   defaultPostAggregator = { type: 'arithmetic', 'fn': '+' };
   customGranularities = ['second', 'minute', 'fifteen_minute', 'thirty_minute', 'hour', 'day', 'week', 'month', 'quarter', 'year', 'all'];
   defaultCustomGranularity = 'minute';
+  defaultScanColumn = "";
   defaultSelectDimension = "";
   defaultSelectMetric = "";
   defaultLimit = 5;
@@ -83,6 +86,11 @@ export class DruidQueryCtrl extends QueryCtrl {
     this.errors = this.validateTarget();
     if (!this.target.currentFilter) {
       this.clearCurrentFilter();
+    }
+
+    if (!this.target.currentScan) {
+      this.target.currentScan = {};
+      this.clearCurrentScanColumn();
     }
 
     if (!this.target.currentSelect) {
@@ -212,6 +220,29 @@ export class DruidQueryCtrl extends QueryCtrl {
   clearCurrentFilter() {
     this.target.currentFilter = { type: this.defaultFilterType };
     this.addFilterMode = false;
+    this.targetBlur();
+  }
+
+  addScanColumns() {
+    if (!this.addScanColumnsMode) {
+      this.addScanColumnsMode = true;
+      return;
+    }
+    if (!this.target.scanColumns) {
+      this.target.scanColumns = [];
+    }
+    this.target.scanColumns.push(this.target.currentScan.column);
+    this.clearCurrentScanColumn();
+  }
+
+  removeScanColumn(index) {
+    this.target.scanColumns.splice(index, 1);
+    this.targetBlur();
+  }
+
+  clearCurrentScanColumn() {
+    this.target.currentScan.column = this.defaultScanColumn;
+    this.addScanColumnsMode = false;
     this.targetBlur();
   }
 
@@ -409,6 +440,11 @@ export class DruidQueryCtrl extends QueryCtrl {
     if (!this.validateLimit(target, errs)) {
       return false;
     }
+    return true;
+  }
+
+  validateScanQuery(target, errs) {
+    // todo
     return true;
   }
 

@@ -4,6 +4,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import * as dateMath from 'app/core/utils/datemath';
 import * as Druid from 'druid.d'
+import {ScanQueryOrderType} from "druid.d";
 
 const DRUID_DATASOURCE_PATH = '/druid/v2/datasources';
 
@@ -92,6 +93,8 @@ export default class DruidDatasource {
     let intervals = this.getQueryIntervals(from, to);
     let promise = null;
 
+    let scanColumns = target.scanColumns;
+
     let selectMetrics = target.selectMetrics;
     let selectDimensions = target.selectDimensions;
     let selectThreshold = target.selectThreshold;
@@ -119,6 +122,19 @@ export default class DruidDatasource {
       promise = this.selectQuery(datasource, intervals, granularity, selectDimensions, selectMetrics, filters, selectThreshold);
       return promise.then(response => {
         return this.convertSelectData(response.data);
+      });
+    }
+    else if (target.queryType === 'scan') {
+      promise = this.scanQuery(datasource,
+          intervals,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          scanColumns,
+          filters);
+      return promise.then(response => {
+        return this.convertScanData(response.data);
       });
     }
     else {
@@ -159,6 +175,49 @@ export default class DruidDatasource {
       aggregator.fieldNames = aggregator.fieldNames.split(',')
     }
     return aggregator;
+  }
+
+  scanQuery(datasource: string,
+            intervals: Array<string>,
+            resultFormat: string,
+            batchSize: number,
+            limit: number,
+            order: ScanQueryOrderType,
+            columns: Array<string | Object>,
+            filters: Array<Druid.DruidFilter>) {
+    let query: Druid.DruidScanQuery = {
+      "queryType": "scan",
+      "dataSource": datasource,
+      "intervals": intervals,
+    };
+
+    if (resultFormat) {
+      query.resultFormat = resultFormat;
+    }
+
+    if (filters && filters.length > 0) {
+      query.filter = this.buildFilterTree(filters);
+    }
+
+    if (columns) {
+      query.columns = columns;
+    }
+
+    if (batchSize) {
+      query.batchSize = batchSize;
+    }
+
+    if (limit) {
+      query.limit = limit;
+    }
+
+    if (order) {
+      query.order = order;
+    }
+
+    console.log(query);
+
+    return this.druidQuery(query);
   }
 
   selectQuery(datasource: string, intervals: Array<string>, granularity: Druid.Granularity,
@@ -242,7 +301,8 @@ export default class DruidDatasource {
     return this.druidQuery(query);
   };
 
-  druidQuery(query: Druid.AbstractDruidQuery) {
+  // druidQuery(query: Druid.AbstractDruidQuery) {
+  druidQuery(query: object) {
     const options = {
       method: 'POST',
       url: this.url + '/druid/v2/',
@@ -552,6 +612,10 @@ export default class DruidDatasource {
       }
     }
     return _.values(result);
+  }
+
+  convertScanData(data) {
+
   }
 
   dateToMoment(date, roundUp) {

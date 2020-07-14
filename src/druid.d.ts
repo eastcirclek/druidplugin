@@ -64,6 +64,21 @@ export interface DruidSelectQuery extends AbstractDruidQuery {
   metrics: Array<string | Object>;
 }
 
+export interface DruidScanQuery {
+  queryType: 'scan';
+  dataSource: string;
+  intervals: Array<string>;
+  resultFormat?: string;
+  filter?: DruidFilter;
+  columns?: Array<string | Object>;
+  batchSize?: number;
+  limit?: number;
+  order?: ScanQueryOrderType;
+  context?: object;
+}
+
+type ScanQueryOrderType = 'ascending' | 'descending' | 'none';
+
 export interface DruidFilterLogical {
   type: 'or' | 'and';
   fields: DruidFilter[];
