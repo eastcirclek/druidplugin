@@ -215,6 +215,7 @@ export default class DruidDatasource {
       query.order = order;
     }
 
+    console.log("-------------------");
     console.log(query);
 
     return this.druidQuery(query);
@@ -335,7 +336,7 @@ export default class DruidDatasource {
   };
 
   getDimensionsAndMetrics(datasource) {
-    return this.get(DRUID_DATASOURCE_PATH + datasource).then(response => {
+    return this.get(DRUID_DATASOURCE_PATH + "/" + datasource).then(response => {
       return response.data;
     });
   };
