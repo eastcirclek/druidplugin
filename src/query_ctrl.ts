@@ -32,7 +32,8 @@ export class DruidQueryCtrl extends QueryCtrl {
     "timeseries": _.noop.bind(this),
     "groupBy": this.validateGroupByQuery.bind(this),
     "topN": this.validateTopNQuery.bind(this),
-    "select": this.validateSelectQuery.bind(this)
+    "select": this.validateSelectQuery.bind(this),
+    "sql": this.validateSQL.bind(this)
   };
   filterValidators = {
     "selector": this.validateSelectorFilter.bind(this),
@@ -174,6 +175,10 @@ export class DruidQueryCtrl extends QueryCtrl {
   targetBlur() {
     this.errors = this.validateTarget();
     this.refresh();
+  }
+
+  runSqlQuery() {
+
   }
 
   addFilter() {
@@ -417,6 +422,10 @@ export class DruidQueryCtrl extends QueryCtrl {
       errs.selectThreshold = "Must specify a positive number";
       return false;
     }
+    return true;
+  }
+
+  validateSQL(target, errs) {
     return true;
   }
 
