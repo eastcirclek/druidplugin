@@ -61,10 +61,12 @@ export default class DruidDatasource {
         d.resolve([]);
         return d.promise;
       }
+
       const maxDataPointsByResolution = options.maxDataPoints;
       const maxDataPointsByConfig = target.maxDataPoints ? target.maxDataPoints : Number.MAX_VALUE;
       const maxDataPoints = Math.min(maxDataPointsByResolution, maxDataPointsByConfig);
       let granularity = target.shouldOverrideGranularity ? this.templateSrv.replace(target.customGranularity) : this.computeGranularity(from, to, maxDataPoints);
+
       //Round up to start of an interval
       //Width of bar chars in Grafana is determined by size of the smallest interval
       const roundedFrom = granularity === "all" ? from : this.roundUpStartTime(from, granularity);
@@ -218,6 +220,8 @@ export default class DruidDatasource {
       query.filter = this.buildFilterTree(filters);
     }
 
+    console.log(query);
+
     return this.druidQuery(query);
   };
 
@@ -275,7 +279,7 @@ export default class DruidDatasource {
   };
 
   getDimensionsAndMetrics(datasource) {
-    return this.get(DRUID_DATASOURCE_PATH + datasource).then(response => {
+    return this.get(DRUID_DATASOURCE_PATH + "/" + datasource).then(response => {
       return response.data;
     });
   };

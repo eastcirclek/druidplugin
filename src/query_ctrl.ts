@@ -124,7 +124,7 @@ export class DruidQueryCtrl extends QueryCtrl {
     this.getMetrics = (query, callback) => {
       return this.datasource.getDimensionsAndMetrics(this.target.druidDS)
         .then(function (dimsAndMetrics) {
-          callback(dimsAndMetrics.metrics);
+          callback([].concat(dimsAndMetrics.metrics));
         });
     };
 
@@ -179,6 +179,7 @@ export class DruidQueryCtrl extends QueryCtrl {
 
   runSqlQuery() {
 
+    this.targetBlur();
   }
 
   addFilter() {
