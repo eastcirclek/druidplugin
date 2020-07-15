@@ -4,7 +4,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import * as dateMath from 'app/core/utils/datemath';
 import * as Druid from 'druid.d'
-import {ScanQueryOrderType} from "druid.d";
+import {LimitSpec, ScanQueryOrderType} from "druid.d";
 
 const DRUID_DATASOURCE_PATH = '/druid/v2/datasources';
 
@@ -57,7 +57,7 @@ export default class DruidDatasource {
     const to = this.dateToMoment(options.range.to, true);
 
     let promises = options.targets.map(target => {
-      if (target.hide === true || _.isEmpty(target.druidDS) || (_.isEmpty(target.aggregators) && target.queryType !== "select")) {
+      if (target.hide === true || _.isEmpty(target.druidDS) || (_.isEmpty(target.aggregators) && ["select", "scan"].indexOf(target.queryType) < 0)) {
         const d = this.q.defer();
         d.resolve([]);
         return d.promise;
@@ -85,24 +85,14 @@ export default class DruidDatasource {
   doQuery(from, to, granularity, target) {
     let datasource = target.druidDS;
     let filters = target.filters;
-    let aggregators = target.aggregators.map(this.splitCardinalityFields);
-    let postAggregators = target.postAggregators;
-    let groupBy = _.map(target.groupBy, (e) => { return this.templateSrv.replace(e) });
-    let limitSpec = null;
-    let metricNames = this.getMetricNames(aggregators, postAggregators);
     let intervals = this.getQueryIntervals(from, to);
     let promise = null;
 
-    let scanColumns = target.scanColumns;
-
-    let selectMetrics = target.selectMetrics;
-    let selectDimensions = target.selectDimensions;
-    let selectThreshold = target.selectThreshold;
-    if (!selectThreshold) {
-      selectThreshold = 5;
-    }
-
     if (target.queryType === 'topN') {
+      let aggregators = target.aggregators.map(this.splitCardinalityFields);
+      let postAggregators = target.postAggregators;
+      let metricNames = this.getMetricNames(aggregators, postAggregators);
+
       let threshold = target.limit;
       let metric = target.druidMetric;
       let dimension = this.templateSrv.replace(target.dimension);
@@ -112,19 +102,34 @@ export default class DruidDatasource {
         });
     }
     else if (target.queryType === 'groupBy') {
-      limitSpec = this.getLimitSpec(target.limit, target.orderBy);
+      let groupBy = _.map(target.groupBy, (e) => { return this.templateSrv.replace(e) });
+
+      let aggregators = target.aggregators.map(this.splitCardinalityFields);
+      let postAggregators = target.postAggregators;
+      let metricNames = this.getMetricNames(aggregators, postAggregators);
+
+      let limitSpec = this.getLimitSpec(target.limit, target.orderBy);
       promise = this.groupByQuery(datasource, intervals, granularity, filters, aggregators, postAggregators, groupBy, limitSpec)
         .then(response => {
           return this.convertGroupByData(response.data, groupBy, metricNames);
         });
     }
     else if (target.queryType === 'select') {
+      let selectMetrics = target.selectMetrics;
+      let selectDimensions = target.selectDimensions;
+      let selectThreshold = target.selectThreshold;
+      if (!selectThreshold) {
+        selectThreshold = 5;
+      }
+
       promise = this.selectQuery(datasource, intervals, granularity, selectDimensions, selectMetrics, filters, selectThreshold);
       return promise.then(response => {
         return this.convertSelectData(response.data);
       });
     }
     else if (target.queryType === 'scan') {
+      let scanColumns = target.scanColumns;
+
       promise = this.scanQuery(datasource,
           intervals,
           undefined,
@@ -137,7 +142,12 @@ export default class DruidDatasource {
         return this.convertScanData(response.data);
       });
     }
-    else {
+    else if (target.queryType == 'timeseres') {
+
+      let aggregators = target.aggregators.map(this.splitCardinalityFields);
+      let postAggregators = target.postAggregators;
+      let metricNames = this.getMetricNames(aggregators, postAggregators);
+
       promise = this.timeSeriesQuery(datasource, intervals, granularity, filters, aggregators, postAggregators)
         .then(response => {
           return this.convertTimeSeriesData(response.data, metricNames);
@@ -214,9 +224,6 @@ export default class DruidDatasource {
     if (order) {
       query.order = order;
     }
-
-    console.log("-------------------");
-    console.log(query);
 
     return this.druidQuery(query);
   }
@@ -312,7 +319,7 @@ export default class DruidDatasource {
     return this.backendSrv.datasourceRequest(options);
   };
 
-  getLimitSpec(limitNum, orderBy) {
+  getLimitSpec(limitNum, orderBy): LimitSpec {
     return {
       "type": "default",
       "limit": limitNum,
@@ -616,7 +623,26 @@ export default class DruidDatasource {
   }
 
   convertScanData(data) {
-
+    const resultList = _.map(data, "result");
+    const eventsList = _.map(resultList, "events");
+    const eventList = _.flatten(eventsList);
+    const result = {};
+    for (let i = 0; i < eventList.length; i++) {
+      const event = eventList[i].event;
+      const timestamp = event.timestamp;
+      if (_.isEmpty(timestamp)) {
+        continue;
+      }
+      for (const key in event) {
+        if (key !== "timestamp") {
+          if (!result[key]) {
+            result[key] = { "target": key, "datapoints": [] };
+          }
+          result[key].datapoints.push([event[key], timestamp]);
+        }
+      }
+    }
+    return _.values(result);
   }
 
   dateToMoment(date, roundUp) {

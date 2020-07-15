@@ -218,7 +218,7 @@
              placeholder="column"
              data-min-length=0
              data-items=100
-             bs-typeahead="ctrl.getMetricsPlusDimensions" />
+             bs-typeahead="ctrl.getColumns" />
       <label class="gf-form-label" ng-show="ctrl.errors.scanColumns">
         <a bs-tooltip="ctrl.errors.scanColumns" style="color: rgb(229, 189, 28)">
           <i class="fa fa-warning"></i>
@@ -244,14 +244,14 @@
 
     <div class="gf-form" ng-repeat="filter in ctrl.target.filters track by $index" ng-switch on="filter.type">
       <label class="gf-form-label" ng-if="filter.negate">NOT&nbsp;(&nbsp;</label>
-      <label ng-switch-when="regex" class="gf-form-label">{{filter.type}}:&nbsp;{{filter.dimension}}&nbsp;=&nbsp;{{filter.pattern}}
+      <laㅐbel ng-switch-when="regex" class="gf-form-label">{{filter.type}}:&nbsp;{{filter.dimension}}&nbsp;=&nbsp;{{filter.pattern}}
         <a ng-click="ctrl.editFilter($index)">
           <i class="fa fa-pencil"></i>
         </a>
         <a ng-click="ctrl.removeFilter($index)">
           <i class="fa fa-remove"></i>
         </a>
-      </label>
+      </laㅐbel>
       <label ng-switch-when="selector" class="gf-form-label">
         {{filter.type}}:&nbsp;{{filter.dimension}}&nbsp;=&nbsp;{{filter.value}}
         <a ng-click="ctrl.editFilter($index)">

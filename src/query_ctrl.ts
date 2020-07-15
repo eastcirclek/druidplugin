@@ -15,7 +15,7 @@ export class DruidQueryCtrl extends QueryCtrl {
   addDimensionsMode: boolean;
   addMetricsMode: boolean;
   listDataSources: any;
-  getDimensionsAndMetrics: any;
+  getColumns: any;
   getMetrics: any;
   getMetricsPlusDimensions: any;
   getDimensions: any;
@@ -135,16 +135,18 @@ export class DruidQueryCtrl extends QueryCtrl {
         });
     };
 
-    this.getMetricsPlusDimensions = (query, callback) => {
+    this.getColumns = (query, callback) => {
       return this.datasource.getDimensionsAndMetrics(this.target.druidDS)
         .then(function (dimsAndMetrics) {
-          callback([].concat(dimsAndMetrics.metrics).concat(dimsAndMetrics.dimensions));
+          callback(['__time'].concat(dimsAndMetrics.metrics).concat(dimsAndMetrics.dimensions));
         });
     };
 
-    this.getDimensionsAndMetrics = (query, callback) => {
-      this.datasource.getDimensionsAndMetrics(this.target.druidDS)
-        .then(callback);
+    this.getMetricsPlusDimensions = (query, callback) => {
+      return this.datasource.getDimensionsAndMetrics(this.target.druidDS)
+          .then(function (dimsAndMetrics) {
+            callback([].concat(dimsAndMetrics.metrics).concat(dimsAndMetrics.dimensions));
+          });
     };
 
     this.getFilterValues = (query, callback) => {
