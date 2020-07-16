@@ -231,7 +231,7 @@ System.register(["lodash", "moment", "app/core/utils/datemath"], function (expor
                 };
                 ;
                 DruidDatasource.prototype.getDimensionsAndMetrics = function (datasource) {
-                    return this.get(DRUID_DATASOURCE_PATH + datasource).then(function (response) {
+                    return this.get(DRUID_DATASOURCE_PATH + "/" + datasource).then(function (response) {
                         return response.data;
                     });
                 };

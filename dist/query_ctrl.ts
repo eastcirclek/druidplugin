@@ -42,8 +42,33 @@ export class DruidQueryCtrl extends QueryCtrl {
   aggregatorValidators = {
     "count": this.validateCountAggregator,
     "cardinality": _.partial(this.validateCardinalityAggregator.bind(this), 'cardinality'),
-    "longSum": _.partial(this.validateSimpleAggregator.bind(this), 'longSum'),
+
+    "doubleAny": _.partial(this.validateSimpleAggregator.bind(this), 'doubleAny'),
+    "doubleFirst": _.partial(this.validateSimpleAggregator.bind(this), 'doubleFirst'),
+    "doubleLast": _.partial(this.validateSimpleAggregator.bind(this), 'doubleLast'),
+    "doubleMax": _.partial(this.validateSimpleAggregator.bind(this), 'doubleMax'),
+    "doubleMean": _.partial(this.validateSimpleAggregator.bind(this), 'doubleMin'),
+    "doubleMin": _.partial(this.validateSimpleAggregator.bind(this), 'doubleMin'),
     "doubleSum": _.partial(this.validateSimpleAggregator.bind(this), 'doubleSum'),
+
+    "floatAny": _.partial(this.validateSimpleAggregator.bind(this), 'floatAny'),
+    "floatFirst": _.partial(this.validateSimpleAggregator.bind(this), 'floatFirst'),
+    "floatLast": _.partial(this.validateSimpleAggregator.bind(this), 'floatLast'),
+    "floatMin": _.partial(this.validateSimpleAggregator.bind(this), 'floatMin'),
+    "floatMax": _.partial(this.validateSimpleAggregator.bind(this), 'floatMax'),
+    "floatSum": _.partial(this.validateSimpleAggregator.bind(this), 'floatSum'),
+
+    "longAny": _.partial(this.validateSimpleAggregator.bind(this), 'longAny'),
+    "longFirst": _.partial(this.validateSimpleAggregator.bind(this), 'longFirst'),
+    "longLast": _.partial(this.validateSimpleAggregator.bind(this), 'longLast'),
+    "longMin": _.partial(this.validateSimpleAggregator.bind(this), 'longMin'),
+    "longMax": _.partial(this.validateSimpleAggregator.bind(this), 'longMax'),
+    "longSum": _.partial(this.validateSimpleAggregator.bind(this), 'longSum'),
+
+    "stringAny": _.partial(this.validateSimpleAggregator.bind(this), 'stringAny'),
+    "stringFirst": _.partial(this.validateSimpleAggregator.bind(this), 'stringFirst'),
+    "stringLast": _.partial(this.validateSimpleAggregator.bind(this), 'stringLast'),
+
     "approxHistogramFold": this.validateApproxHistogramFoldAggregator.bind(this),
     "hyperUnique": _.partial(this.validateSimpleAggregator.bind(this), 'hyperUnique'),
     "thetaSketch": this.validateThetaSketchAggregator.bind(this)
